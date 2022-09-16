@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+  labels:
+    name: app
+spec:
+  selector:
+    matchLabels:
+      name: app
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        name: app
+    spec:
+      containers:
+      - name: app
+        image: rookie1025/testing-image
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3000
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /root/app
+          name: app
+      restartPolicy: Always
+      securityContext:
+        runAsUser: 0
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: app
+        persistentVolumeClaim:
+          claimName: app-claim
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app
+  labels:
+    name: app
+spec:
+  type: NodePort
+  ports:
+    - name: access
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+  selector:
+    name: app
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: app
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 4Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/tmp/data"
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: app-claim
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 4Gi
