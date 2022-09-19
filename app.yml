@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
       - name: app
-        image: rookie1025/testing-image
+        image: rookie1025/cliff-app
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 3000
@@ -83,3 +83,17 @@ spec:
   resources:
     requests:
       storage: 4Gi
+      
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: jenkins
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: jenkins
+subjects:
+- kind: ServiceAccount
+  name: jenkins
+  namespace: jenkins
